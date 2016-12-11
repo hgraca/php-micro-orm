@@ -14,6 +14,7 @@ I've built it as a learning tool and maybe at some point it will be usable, but 
 
 ## Usage
 
+### Config
 The config can be something like:
 
 ```php
@@ -43,6 +44,52 @@ The config can be something like:
         ],
     ],
 ]
+```
+
+### Querying
+
+For simple queries we can use the client `select` method as:
+```php
+$table = 'DummyTable';
+$filter = [
+    'propA' => true,
+    'propB' => null,
+    'propC' => ['filterC1' => 5, 'filterC2' => null],
+];
+$orderBy = [
+    'propA' => 'ASC',
+    'propB' => 'DESC',
+];
+
+$this->client->select($table, $filter, $orderBy);
+```
+And the code above generates the following SQL:
+```sql
+SELECT * 
+FROM `DummyTable` 
+WHERE 
+    `propA`=:propA_filter 
+    AND `propB` IS :propB_filter 
+    AND (`propC`=:filterC1_filter OR `propC` IS :filterC2_filter) 
+ORDER BY propA ASC, propB DESC
+```
+But for more complex queries we should do them custom and just pass them to the client `executeQuery` method, ie:
+```php
+$sql = 'SELECT * 
+        FROM `DummyTable` 
+        WHERE 
+            `propA`=:propA_filter 
+            AND `propB` IS :propB_filter 
+            AND (`propC`=:filterC1_filter OR `propC` IS :filterC2_filter) 
+        ORDER BY propA ASC, propB DESC';
+        
+$filter = [
+    'propA' => true,
+    'propB' => null,
+    'propC' => ['filterC1' => 5, 'filterC2' => null],
+];
+
+$this->executeQuery($sql, $filter);
 ```
 
 ### Conventions
@@ -93,6 +140,9 @@ make cs-fix
 
 ## Todo
 
+- Cleanup and test Repository
+- Cleanup and test DataMapper
+- Cleanup and test Config
 - Document how to use repositories and query classes, and how not to
 - Create a relational config format, like the Doctrine yml config, but with arrays
 - Implement lazy loading
